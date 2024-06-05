@@ -1,4 +1,4 @@
-
+# %%
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support import expected_conditions as EC
@@ -6,92 +6,97 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
 import time
 
-
+# %%
 driver = webdriver.Chrome('/usr/lib/chromium-browser/chromedriver')
 driver.get('https://linkedin.com/login')
 
 
+# def SignIn():
 time.sleep(2)
 
-username = driver.find_element_by_xpath('//input[@name="session_key"]')
-password = driver.find_element_by_xpath('//input[@name="session_password"]')
+username_input = driver.find_element_by_xpath('//input[@name="session_key"]')
+password_input = driver.find_element_by_xpath('//input[@name="session_password"]')
 
-username.send_keys('')
-password.send_keys('')
+# reading email and password from file
+file = open('credentials.txt','r')
+email = file.readline()
+password = file.readline()
+file.close()
+
+username_input.send_keys(email)
+password_input.send_keys(password)
+
 
 time.sleep(2)
 
 submit = driver.find_element_by_xpath('//button[@type="submit"]')
 submit.click()
 
+url = "https://www.linkedin.com/search/results/people/?network=%5B%22F%22%5D&origin=FACETED_SEARCH&page="
 
 
-# pressing enter on empty search bar search bar 
-time.sleep(3)
-serach_bar = driver.find_element_by_xpath('//input[@placeholder="Search"]')
-serach_bar.send_keys(Keys.ENTER)
+for i in range(5):
+    # navigating to the connections page
+    driver.get(url+str(i+1))
+    time.sleep(5)
 
+    # getting all buttons on the people page
+    all_buttons = driver.find_elements_by_tag_name("button")
+    message_buttons = [btn for btn in all_buttons if btn.text == "Message"]
 
-# now clicking on people's button
-time.sleep(5)
-all_buttons = driver.find_elements_by_tag_name("button")
-people_button = [btn for btn in all_buttons if btn.text == "People"]
-people_button = people_button[0]
-people_button.click()
+    # getting all the spans on the page
+    all_spans = driver.find_elements_by_tag_name("span")
+    all_spans = [s for s in all_spans if s.get_attribute("aria-hidden") == "true"]
 
+    idx = [*range(12, 49, 4)]
+    names_list = []
 
-# now clicking on first connection button
-time.sleep(5)
-all_buttons = driver.find_elements_by_tag_name("button")
-first_button = [btn for btn in all_buttons if btn.text == "1st"]
-first_button = first_button[0]
-first_button.click()
+    for k in idx:
+        name = all_spans[k].text.split()[0]
+        names_list.append(name)   
 
+    print(names_list)
 
-# Now clicking on Message Button
+    for j in range(len(message_buttons)):
 
-time.sleep(5)
-all_buttons = driver.find_elements_by_tag_name("button")
-message_buttons = [btn for btn in all_buttons if btn.text == "Message"]
+        message_buttons[j].click()
+        time.sleep(3)
 
+        # all_buttons = driver.find_elements_by_tag_name("button")
 
+        # now selecting message box div
+        message_box_div = driver.find_element_by_xpath("//div[starts-with(@class, 'msg-form__msg-content-container')]")
+        # message_box_div.click()
+        time.sleep(1)
+        # selecting message paragraph
+        paragraphs = driver.find_elements_by_tag_name("p")
 
-for i in range(1,3):
-
-    message_buttons[i].click()
-    time.sleep(3)
-
-    # all_buttons = driver.find_elements_by_tag_name("button")
-
-    # now selecting message box div
-    message_box_div = driver.find_element_by_xpath("//div[starts-with(@class, 'msg-form__msg-content-container')]")
-    message_box_div.click()
-    time.sleep(1)
-    # selecting message paragraph
-    paragrpahs = driver.find_elements_by_tag_name("p")
-    message = "Did not mean to bother you. This message is from a bot. Kindly ignore this message."
-    try:
-        if paragrpahs[-5].text != "":
-            paragrpahs[-5].send_keys(Keys.CONTROL + "a")
-            paragrpahs[-5].send_keys(Keys.BACK_SPACE)
+        message = f"Hey {names_list[j]}! Did not mean to bother you. This message is from a bot. Kindly ignore this message."
+        try:
+            # if paragrpahs[-5].text != "":
+            #     paragrpahs[-5].send_keys(Keys.CONTROL + "a")
+            #     paragrpahs[-5].send_keys(Keys.BACK_SPACE)
+                
+            # time.sleep(2)
+            paragraphs[-5].send_keys(message)
             time.sleep(2)
-        paragrpahs[-5].send_keys(message)
+            all_buttons = driver.find_elements_by_tag_name("button")
+
+            # send_button = [btn for btn in all_buttons if btn.text == "Send"]
+            # send_button[0].click()
+            time.sleep(2)
+        except:
+            print("Skipping a Contact")
+        #     continue
+        
+        # selecting chat closing button
+        time.sleep(2)
+        all_buttons = driver.find_elements_by_tag_name("button")
+        close_button = [btn for btn in all_buttons if btn.text[:10] == "Close your"]
+        close_button = close_button[0]
+        close_button.click()
 
         all_buttons = driver.find_elements_by_tag_name("button")
-
-        send_button = [btn for btn in all_buttons if btn.text == "Send"]
-        send_button[0].click()
-        time.sleep(2)
-    except:
-        continue
-    
-    # selecting chat closing button
-    all_buttons = driver.find_elements_by_tag_name("button")
-    close_button = [btn for btn in all_buttons if btn.text[:28] == "Close your conversation with"]
-    close_button = close_button[0]
-    close_button.click()
-
-
-
-
+        discard_buttons = [btn for btn in all_buttons if btn.text == "Discard"]
+        discard_buttons[0].click()
 
