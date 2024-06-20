@@ -1,13 +1,18 @@
-# %%
 from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
 import time
 
-# %%
-driver = webdriver.Chrome('/usr/lib/chromium-browser/chromedriver')
+options = webdriver.ChromeOptions()
+# options.add_argument("--headless")
+options.add_argument("--no-sandbox")
+options.add_argument(r"--user-data-dir=/home/username/.config/google-chrome")
+options.add_argument(r'--user-profile=Default')
+
+driver = webdriver.Chrome(options=options)
 driver.get('https://linkedin.com/login')
 
 
